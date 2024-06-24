@@ -3,6 +3,8 @@ package masker
 import (
 	"sheremet-o/GO_spam_masker_v2.git/service"
 	"sync"
+
+	"github.com/sirupsen/logrus"
 )
 
 type MaskingService struct {
@@ -17,10 +19,10 @@ func NewMaskingService(producer service.Producer, presenter service.Presenter) *
 	}
 }
 
-func (ms *MaskingService) RunConcurrently() {
+func (ms *MaskingService) RunConcurrently() error {
 	data, err := ms.producer.Produce()
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	ch := make(chan string)
@@ -51,8 +53,11 @@ func (ms *MaskingService) RunConcurrently() {
 
 	err = ms.presenter.Present(resultData)
 	if err != nil {
-		panic(err)
+		logrus.Errorf("Ошибка представленных данных: %v", err)
+		return err
 	}
+
+	return nil
 }
 
 func (ms *MaskingService) Masker(message string) string {
